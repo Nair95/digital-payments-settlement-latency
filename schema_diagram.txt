@@ -1,0 +1,64 @@
+================================================================================
+ENTITY RELATIONSHIP SCHEMA DIAGRAM: DIGITAL PAYMENTS SETTLEMENT & CHURN
+DATABASE: payments_analytics.db (SQLite 3)
+================================================================================
+
++------------------------+               +----------------------------+
+|     dim_merchants      | 1           * | fact_merchant_settlements  |
++------------------------+---------------+----------------------------+
+| PK  merchant_id        |               | PK  settlement_id          |
+|     business_name      |               | FK  merchant_id            |
+|     mcc_category       |               |     settlement_batch_date  |
+|     onboarding_date    |               |     gross_volume_inr       |
+|     merchant_tier      |               |     net_mdr_deducted_inr   |
+|     settlement_cycle_s |               |     net_settled_amount_inr |
+|     is_active          |               |     expected_settlement_dt |
+|     churn_date         |               |     actual_settlement_date |
+|     churn_reason       |               |     settlement_delay_days  |
++------------------------+               |     sla_breach_flag        |
+          | 1                            +----------------------------+
+          |
+          |       +----------------------------+
+          |       |     dim_issuing_banks      |
+          |       +----------------------------+
+          |       | PK  bank_id                |
+          |       |     bank_name              |
+          |       |     bank_code              |
+          |       |     tier                   |
+          |       |     base_network_reliab    |
+          |       +----------------------------+
+          |                     | 1
+          |                     |
+          |                     |       +----------------------------+
+          |                     |       |    dim_payment_methods     |
+          |                     |       +----------------------------+
+          |                     |       | PK  payment_method_id      |
+          |                     |       |     payment_channel        |
+          |                     |       |     network_provider       |
+          |                     |       |     mdr_rate_pct           |
+          |                     |       +----------------------------+
+          |                     |                     | 1
+          |                     |                     |
+          | *                   | *                   | *
++--------------------------------------------------------------------+
+|                      fact_payment_transactions                     |
++--------------------------------------------------------------------+
+| PK  txn_id                                                         |
+| FK  merchant_id                                                    |
+| FK  bank_id                                                        |
+| FK  payment_method_id                                              |
+|     txn_timestamp                                                  |
+|     amount_inr                                                     |
+|     status (SUCCESS, FAILED, USER_DROPPED, TIMEOUT)                |
+|     error_code                                                     |
+|     latency_ms                                                     |
+|     is_routed_via_dynamic_sla                                      |
++--------------------------------------------------------------------+
+
+--------------------------------------------------------------------------------
+CARDINALITY & REFERENTIAL INTEGRITY:
+- dim_merchants       (1) -> (*) fact_payment_transactions  [ON DELETE RESTRICT]
+- dim_merchants       (1) -> (*) fact_merchant_settlements  [ON DELETE RESTRICT]
+- dim_issuing_banks   (1) -> (*) fact_payment_transactions  [ON DELETE RESTRICT]
+- dim_payment_methods (1) -> (*) fact_payment_transactions  [ON DELETE RESTRICT]
+================================================================================

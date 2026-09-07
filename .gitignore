@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Agentic-tooling artifacts (text extractions, search index, scratch EDA)
+_extracted_raw.txt
+_extracted_clean.txt
+.zvec-grep/
+.zcode/
+exploration/
+submission/
+
+# Regenerable dashboard extracts (rebuild via dashboard/build_extracts.ipynb)
+dashboard/extracts/
+
+# Large binary deliverables (db kept local for ZIP assembly; exceeds git hosting limits)
+*.db
+*.zip
+
+# Personal files
+MBA_Interview_Knowledge_Base.docx
