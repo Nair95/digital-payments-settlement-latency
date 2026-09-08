@@ -22,10 +22,10 @@ the **COO** and **Head of Merchant Acquiring** on two suspected operational brea
 
 | Path | What it is |
 |---|---|
-| `Group_03_Digital_Payments_Settlement_Latency.ipynb` | **TEMPLATE notebook** — 14-block scaffold with goals/hints/TODOs; runs clean end-to-end |
+| `Group_03_Digital_Payments_Settlement_Latency.ipynb` | **TEMPLATE notebook** — same structure with numbered beginner steps (≤ 3 lines of code per step); runs clean before solving |
 | `Group_03_Digital_Payments_Settlement_Latency_SOLUTION.ipynb` | **SOLUTION notebook** — fully executed analysis (all 8 KBQs, 8 charts, 4 multivariate diagnostics, 5 quantified recommendations); passes Restart → Run All |
 | `payments_analytics.db` | Provided SQLite database (5 relational tables; sole data source) — keep beside the notebooks |
-| `requirements.txt` | Pinned runtime environment (pandas / sqlalchemy / matplotlib) |
+| `requirements.txt` | Pinned runtime environment (numpy / pandas / matplotlib / seaborn) |
 | `pyproject.toml` + `uv.lock` + `.python-version` | uv-managed environment definition (CPython 3.13.14) |
 | `docs/analysis_and_insights.md` | Written analysis: findings per KBQ + recommendation table |
 | `docs/decision_log.md` | Every material analytical decision + corrections (append-only) |
@@ -59,16 +59,22 @@ jupyter lab
 
 Delivered notebooks are already fully executed; re-running is for validation.
 
+**Architecture:** SQL (Python's built-in `sqlite3`) **extracts** the five tables once into labelled
+DataFrames; **pandas does all the work afterwards** — cleaning, integrity validation, EDA, aggregation,
+diagnostics and feature engineering.
+**Libraries:** `numpy`, `pandas`, `matplotlib`, `seaborn` (+ stdlib `sqlite3`) — nothing else.
+
 ## Data & method in one paragraph
 
-Star-schema SQLite (3 dimensions → 2 facts: 530k transactions, 125k settlements). All aggregation is
-pushed down to SQL (window functions for p50/p95); Python handles rendering, statistics and narrative.
-Integrity is proven before use: PK uniqueness, zero FK orphans, settlement ledger identity, domain
-conformance — documented as decisions Q1–Q6 in the notebook. Four multivariate diagnostics (MCC × cycle
-breach matrix; breach-bucket × tier churn; routing lift by tier and channel; route × bank latency)
-support the causal story: infrastructure-side failures and long-cycle settlement breaches concentrate
-in the SMB segment that pays 65% of platform MDR — and both are addressable with routing, liquidity
-and trigger-based retention.
+Star-schema SQLite (3 dimensions → 2 facts: 530k transactions, 125k settlements). SQL extracts the
+tables; pandas validates the relational contract before any analysis (duplicate-PK counts, left-merge
+orphan tests with the `_merge` indicator, the settlement ledger identity), engineers calendar and
+exposure features (`df_merchant_exposure`), and produces every aggregate via `groupby().agg()`,
+`pivot_table()` and `groupby().quantile()` — documented as decisions Q1–Q6 in the notebook. Four
+multivariate diagnostics (MCC × cycle breach matrix; breach-bucket × tier churn; routing lift by tier
+and channel; route × bank latency) support the causal story: infrastructure-side failures and
+long-cycle settlement breaches concentrate in the SMB segment that pays 65% of platform MDR — and both
+are addressable with routing, liquidity and trigger-based retention.
 
 ## Submission package
 

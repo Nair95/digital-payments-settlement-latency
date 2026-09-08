@@ -80,7 +80,7 @@ merchant churn. Diagnosis across the two suspected failure modes:
   engine effect, not a segment artifact.
 
 ### KBQ 6 · Latency mitigation
-- Average latency 1,700 → 1,035 ms (**−665 ms, −39%**); p95 7,336 → 3,793 ms.
+- Average latency 1,700 → 1,035 ms (**−665 ms, −39%**); p95 7,335 → 3,793 ms.
 - Route × bank: on every degraded PSU switch the dynamic route claws back ~666 ms on average —
   the engine effectively neutralizes the worst-switch penalty.
 - *Implication:* extending dynamic routing to 100% of traffic is the single highest-leverage

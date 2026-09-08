@@ -5,6 +5,19 @@
 
 ## Methodological decisions
 
+- **D9 — v2 architecture: SQL extracts, pandas analyses (user directive).** The notebook pipeline was
+  restructured so **SQL does extraction only**: the five tables are pulled once via Python's built-in
+  `sqlite3` driver (`pd.read_sql_query`) into labelled frames (`df_merchants`, `df_banks`, `df_methods`,
+  `df_txns`, `df_settlements`, plus derived `df_merchant_exposure`). **All cleaning, integrity checks,
+  EDA, aggregation and diagnostics run in pandas** (groupby/agg, pivot_table, quantile, boolean-mask
+  domain checks, merge-with-indicator orphan tests). SQLAlchemy was **removed**; the library set is
+  restricted to `numpy`, `pandas`, `matplotlib`, `seaborn` (+ stdlib `sqlite3`); `requirements.txt`
+  re-exported. Quantiles now come from `groupby(...)['latency_ms'].quantile(q)` (interpolated) instead
+  of the SQL ROW_NUMBER rank pick — the p95 moved 7,336 → 7,335 ms (both are valid p95 estimators; all
+  benchmark numbers reproduce exactly: lift +8.57 pp, breach 28.4%, MDR ₹2.831M, SMB 65%). The
+  dashboard extractor was converted to `sqlite3` for the same library restriction. The TEMPLATE was
+  rebuilt to mirror the new structure with beginner-grade numbered steps (≤ 3 lines of code per step,
+  hint comments giving the exact pandas idiom, `None` placeholders so it runs clean before solving).
 - **D1 — Naming & metadata.** Deliverables carry Group 03 naming
   (`Group_03_Digital_Payments_Settlement_Latency[_SOLUTION].ipynb`). Member metadata uses placeholders
   (Members A–G, SAP ID / Roll No / Email / 100% contribution each) pending real names.
@@ -70,3 +83,10 @@
 - **C4 — Environment note.** The uv env resolves pandas 3.0.5 (verified numbers were originally
   profiled under pandas 2.x/Anaconda). Full re-execution in the uv env reproduced every verified
   number exactly (see `PROGRESS.md` "Verified numbers"), so no version contingency remains.
+- **C5 — v2 rebuild regressions caught by execution.** Three restart-safety violations surfaced during
+  the pandas-centric rebuild: (1) the coverage-parity check referenced `is_churned` before the prep
+  block created it — recomputed from `churn_date.notnull()`; (2) TEMPLATE step 8.3 assigned a column
+  into a still-`None` placeholder frame (`pareto['fault_domain'] = None`) — replaced with a standalone
+  placeholder; (3) TEMPLATE step 13.1 subscripted the still-`None` `df_merchant_exposure` — demoted
+  from "worked" to a hinted TODO step. Lesson applied: in the TEMPLATE, no executable line may touch
+  a student placeholder.
